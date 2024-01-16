@@ -4,13 +4,16 @@
 package currency_test
 
 import (
+	"bytes"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/big"
 	"sync"
 	"testing"
 
-	"github.com/bojanz/currency"
+	"github.com/myinstacar/currency"
 )
 
 func TestNewAmount(t *testing.T) {
@@ -876,7 +879,6 @@ func TestAmount_UnmarshalJSON(t *testing.T) {
 	if err == nil {
 		t.Errorf("error expected")
 	}
-
 }
 
 func TestAmount_Value(t *testing.T) {
@@ -929,4 +931,27 @@ func TestAmount_Scan(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMarshalBSON(t *testing.T) {
+	a, _ := currency.NewAmount("100", "EUR")
+	dao, _ := a.MarshalBSON()
+
+	strDao := string(dao)
+	fmt.Println(strDao)
+
+	var b bytes.Buffer        // Stand-in for a network connection
+	enc := gob.NewEncoder(&b) // Will write to network.
+
+	// Encode (send) the value.
+	err := enc.Encode(a)
+	if err != nil {
+		log.Fatal("encode error:", err)
+	}
+
+	str := string(b.Bytes())
+	fmt.Println(str)
+
+	a2 := &currency.Amount{}
+	a2.UnmarshalBSON([]byte(b.Bytes()))
 }

@@ -130,3 +130,12 @@ func contains(a []string, x string) bool {
 	}
 	return false
 }
+
+func CurrencyOrZeroEur(amount, code string) Amount {
+	if c, err := NewAmount(amount, code); err == nil {
+		return c
+	}
+
+	c, _ := NewAmount("0", "EUR")
+	return c
+}

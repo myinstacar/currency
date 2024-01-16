@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/bojanz/currency"
+	"github.com/myinstacar/currency"
 )
 
 var result currency.Amount

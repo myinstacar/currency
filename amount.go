@@ -12,6 +12,8 @@ import (
 	"strings"
 
 	"github.com/cockroachdb/apd/v3"
+	"go.mongodb.org/mongo-driver/bson"
+	_ "go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // RoundingMode determines how the amount will be rounded.
@@ -63,6 +65,11 @@ func (e MismatchError) Error() string {
 type Amount struct {
 	number       apd.Decimal
 	currencyCode string
+}
+
+type AmountDao struct {
+	Number       int64  `bson:"number"`
+	CurrencyCode string `bson:"code"`
 }
 
 // NewAmount creates a new Amount from a numeric string and a currency code.
@@ -423,4 +430,39 @@ func roundingContext(decimal *apd.Decimal, mode RoundingMode) *apd.Context {
 	ctx.Rounding = extModes[mode]
 
 	return &ctx
+}
+
+func (a *Amount) MarshalBSON() ([]byte, error) {
+	amountDao := AmountDao{
+		Number:       0,
+		CurrencyCode: "EUR",
+	}
+
+	number, err := a.Int64()
+	if err != nil {
+		return []byte{}, err
+	}
+
+	amountDao.Number = number
+	amountDao.CurrencyCode = a.currencyCode
+
+	return bson.Marshal(amountDao)
+}
+
+func (a *Amount) UnmarshalBSON(data []byte) error {
+	amountDao := &AmountDao{}
+	err := bson.Unmarshal(data, amountDao)
+	if err != nil {
+		return err
+	}
+
+	newAmount, err := NewAmountFromInt64(amountDao.Number, amountDao.CurrencyCode)
+	if err != nil {
+		return err
+	}
+
+	a.currencyCode = newAmount.currencyCode
+	a.number = newAmount.number
+
+	return nil
 }
