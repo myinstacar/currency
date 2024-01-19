@@ -432,7 +432,7 @@ func roundingContext(decimal *apd.Decimal, mode RoundingMode) *apd.Context {
 	return &ctx
 }
 
-func (a *Amount) MarshalBSON() ([]byte, error) {
+func (a Amount) MarshalBSON() ([]byte, error) {
 	amountDao := AmountDao{
 		Number:       0,
 		CurrencyCode: "EUR",
